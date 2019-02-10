@@ -1,0 +1,56 @@
+<!--index.html-->
+<title>Avoids.io</title>
+<body bgcolor="#CAC9C9">
+<style>
+	.float_center {
+	  float: right;
+
+	  position: relative;
+	  left: -50%;
+	  text-align: left;
+	}
+	.float_center > .child {
+	  position: relative;
+	  left: 50%;
+	}
+</style>
+
+<div class="float_center">
+	<ul class="child">
+		<div id="promptDiv" style="display:inline-block;">
+			Name: <input id="promptDiv-name" type="text"></input>
+			<button id="promptDiv-play">PLAY!</button>
+		</div>
+
+		<div id="gameDiv" style="display:none;">
+			<canvas id="ctx" width="500" height="500" style="border:1px solid #000000; background-color: white; "></canvas>
+		</div>
+	</ul>
+</div>
+
+ 
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script>
+    var ctx = document.getElementById("ctx").getContext("2d");
+    ctx.font = '30px Arial';
+   
+    var socket = io();
+       
+    //username setup
+    var promptDiv = document.getElementById('promptDiv')
+    var promptDivname = document.getElementById('promptDiv-name')
+    var promptDivplay = document.getElementById('promptDiv-play')
+
+    promptDivplay.onclick = function(){
+    	socket.emit('play',{name:promptDivname.value});
+    }
+    socket.on('playResponse',function(data){
+    	if(data.success){
+    		promptDiv.style.display = 'none';
+    		gameDiv.style.display = 'inline-block';
+    	}
+   		else
+   			alert("Try Again.");
+    });
+</script>
+</body>
