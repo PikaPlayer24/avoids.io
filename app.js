@@ -8,16 +8,24 @@ app.get('/',function(req, res) {
 });
 app.use('/client',express.static(__dirname + '/client'));
 
-var port = 3000
+var port = 3000;
 serv.listen(port);
 console.log("Server started on port " + port + ".");
 
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 
 var SOCKET_LIST = {};
 
 var Entity = function(){
 	var self = {
-		x:250,
+		x:400,
 		y:250,
 		spdX:0,
 		spdY:0,
@@ -36,8 +44,8 @@ var Entity = function(){
 var Player = function(param){
 	var self = Entity();
 	self.id = param.id;
-	self.number = "" + Math.floor(10 * Math.random());
 	self.username = param.username;
+	self.color = param.color;
 	self.pressingRight = false;
 	self.pressingLeft = false;
 	self.pressingUp = false;
@@ -70,10 +78,11 @@ var Player = function(param){
 	return self;
 }
 Player.list = {};
-Player.onConnect = function(socket,username){
+Player.onConnect = function(socket,username,color){
 	var player = Player({
 		username:username,
 		id:socket.id,
+		color:color,
 	});
 	socket.on('keyPress',function(data){
 		if(data.inputId === 'left')
@@ -103,7 +112,7 @@ Player.update = function(){
 		pack.push({
 			x:player.x,
 			y:player.y,
-			number:player.number
+			color:player.color,
 		});		
 	}
 	return pack;
@@ -117,7 +126,8 @@ io.sockets.on('connection', function(socket){
 	SOCKET_LIST[socket.id] = socket;
 	
 	socket.on('play',function(data){
-		Player.onConnect(socket,data.name);
+		var randomcolor = 'blue';//getRandomColor() needs fixing
+		Player.onConnect(socket,data.name,randomcolor);
 	});
 	
 	console.log(socket.id + " connected.");

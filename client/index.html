@@ -23,13 +23,13 @@
 				<button id="promptDiv-play">PLAY!</button>
 			</div>
 			<div id="gameDiv" style="display:none;">
-				<canvas id="ctx" width="500" height="500" style="border:1px solid #000000; background-color: white; "></canvas>
-				<div id="chat-text" style="width:500px;height:80px;overflow-y:scroll">
+				<canvas id="ctx" width="800" height="500" style="border:1px solid #000000; background-color: white; "></canvas>
+				<div id="chat-text" style="width:800px;height:100px;overflow-y:scroll; background-color: #85C1E9; ">
 				    <div>Welcome to chat!</div>
 				</div>
 				 
 				<form id="chat-form">
-				    <input id="chat-input" type="text" style="width:500px"></input>
+				    <input id="chat-input" type="text" style="width:800px"></input>
 				</form>
 			</div>
 		</ul>
@@ -37,13 +37,18 @@
 	 
 	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 	<script>
+		//Set Up
 		var chatText = document.getElementById('chat-text');
 	    var chatInput = document.getElementById('chat-input');
 	    var chatForm = document.getElementById('chat-form');
 	    var ctx = document.getElementById("ctx").getContext("2d");
 	    ctx.font = '30px Arial';
-	   
+
 	    var socket = io();
+
+	    var WIDTH = 800;
+	    var HEIGHT = 500;
+
 	    
 	    //username setup
 	    var promptDiv = document.getElementById('promptDiv')
@@ -74,9 +79,11 @@
 
 	    //game
 	    socket.on('newPositions',function(data){
-	        ctx.clearRect(0,0,500,500);
+	        ctx.clearRect(0,0,800,500);
 	        for(var i = 0 ; i < data.player.length; i++)
-				ctx.fillText(data.player[i].number,data.player[i].x,data.player[i].y);	
+	        	ctx.fillStyle = data.player[i].color;
+	        for(var i = 0 ; i < data.player.length; i++)
+	        	ctx.fillRect(data.player[i].x,data.player[i].y,25,25);
 	    });
 	 
 	    document.onkeydown = function(event){
