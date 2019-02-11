@@ -52,7 +52,7 @@ var Player = function(param){
 	
 	
 	self.updateSpd = function(){
-		if(self.pressingRight)
+		if(self.pressingRight)	
 			self.spdX = self.maxSpd;
 		else if(self.pressingLeft)
 			self.spdX = -self.maxSpd;
