@@ -49,6 +49,22 @@
 	    var WIDTH = 800;
 	    var HEIGHT = 500;
 
+
+	    function getRandomColor() {
+		  var letters = '0123456789ABCDEF';
+		  var color = '#';
+		  for (var i = 0; i < 6; i++) {
+		    color += letters[Math.floor(Math.random() * 16)];
+		  }
+		  return color;
+		}
+
+		function updateScroll(){
+		    chatText.scrollTop = chatText.scrollHeight;
+		}
+
+		setInterval(updateScroll,1000/25);
+
 	    
 	    //username setup
 	    var promptDiv = document.getElementById('promptDiv')
@@ -56,7 +72,11 @@
 	    var promptDivplay = document.getElementById('promptDiv-play')
 
 	    promptDivplay.onclick = function(){
-	    	socket.emit('play',{name:promptDivname.value});
+	    	var randcolor = getRandomColor();
+	    	socket.emit('play',{
+	    		name:promptDivname.value,
+	    		color:randcolor,
+	    	});	
 	    	promptDiv.style.display = 'none';
 	    	gameDiv.style.display = 'inline-block';
 	    }
@@ -81,9 +101,8 @@
 	    socket.on('newPositions',function(data){
 	        ctx.clearRect(0,0,800,500);
 	        for(var i = 0 ; i < data.player.length; i++)
-	        	ctx.fillStyle = data.player[i].color;
-	        for(var i = 0 ; i < data.player.length; i++)
-	        	ctx.fillRect(data.player[i].x,data.player[i].y,25,25);
+	        	//ctx.fillStyle = data.player[i].color;
+	        	ctx.fillRect(data.player[i].x,data.player[i].y,25,25);	
 	    });
 	 
 	    document.onkeydown = function(event){

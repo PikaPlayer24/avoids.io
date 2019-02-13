@@ -12,15 +12,6 @@ var port = 3000;
 serv.listen(port);
 console.log("Server started on port " + port + ".");
 
-function getRandomColor() {
-  var letters = '0123456789ABCDEF';
-  var color = '#';
-  for (var i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
-  }
-  return color;
-}
-
 var SOCKET_LIST = {};
 
 var Entity = function(){
@@ -125,9 +116,8 @@ io.sockets.on('connection', function(socket){
 	socket.id = Math.random();
 	SOCKET_LIST[socket.id] = socket;
 	
-	socket.on('play',function(data){
-		var randomcolor = 'blue';//getRandomColor() needs fixing
-		Player.onConnect(socket,data.name,randomcolor);
+	socket.on('play',function(data){;
+		Player.onConnect(socket,data.name,data.color);
 	});
 	
 	console.log(socket.id + " connected.");
