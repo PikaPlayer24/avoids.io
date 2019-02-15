@@ -29,13 +29,16 @@ var Entity = function(){
 		self.x += self.spdX;
 		self.y += self.spdY;
 	}
+	self.getDistance = function(pt){
+		return Math.sqrt(Math.pow(self.x-pt.x,2) + Math.pow(self.y-pt.y,2));
+	}
 	return self;
 }
 
 var Player = function(param){
 	var self = Entity();
 	self.id = param.id;
-	self.username = param.username;
+	self.username = param.name;
 	self.color = param.color;
 	self.pressingRight = false;
 	self.pressingLeft = false;
@@ -49,9 +52,8 @@ var Player = function(param){
 		super_update();
 	}
 	
-	
 	self.updateSpd = function(){
-		if(self.pressingRight)	
+		if(self.pressingRight)
 			self.spdX = self.maxSpd;
 		else if(self.pressingLeft)
 			self.spdX = -self.maxSpd;
@@ -65,13 +67,33 @@ var Player = function(param){
 		else
 			self.spdY = 0;		
 	}
-	Player.list[param.id] = self;
+	
+	self.getInitPack = function(){
+		return {
+			id:self.id,
+			x:self.x,
+			y:self.y,	
+			color:self.color,
+			name:self.username,
+		};		
+	}
+	self.getUpdatePack = function(){
+		return {
+			id:self.id,
+			x:self.x,
+			y:self.y,
+		}	
+	}
+	
+	Player.list[self.id] = self;
+	
+	initPack.player.push(self.getInitPack());
 	return self;
 }
 Player.list = {};
-Player.onConnect = function(socket,username,color){
+Player.onConnect = function(socket,name,color){
 	var player = Player({
-		username:username,
+		username:name,
 		id:socket.id,
 		color:color,
 	});
@@ -85,26 +107,29 @@ Player.onConnect = function(socket,username,color){
 		else if(data.inputId === 'down')
 			player.pressingDown = data.state;
 	});
-	socket.on('sendMsgToServer',function(data){
-		for(var i in SOCKET_LIST){
-			SOCKET_LIST[i].emit('addToChat',player.username + ': ' + data);
-		}
-	});
+	
+	socket.emit('init',{
+		selfId:socket.id,
+		player:Player.getAllInitPack(),
+	})
+}
+Player.getAllInitPack = function(){
+	var players = [];
+	for(var i in Player.list)
+		players.push(Player.list[i].getInitPack());
+	return players;
 }
 
 Player.onDisconnect = function(socket){
 	delete Player.list[socket.id];
+	removePack.player.push(socket.id);
 }
 Player.update = function(){
 	var pack = [];
 	for(var i in Player.list){
 		var player = Player.list[i];
 		player.update();
-		pack.push({
-			x:player.x,
-			y:player.y,
-			color:player.color,
-		});		
+		pack.push(player.getUpdatePack());		
 	}
 	return pack;
 }
@@ -125,8 +150,14 @@ io.sockets.on('connection', function(socket){
 	socket.on('disconnect',function(){
 		console.log(socket.id + " disconnected.");
 		delete SOCKET_LIST[socket.id];
-		Player.onDisconnect(socket);
+		Player.onDisconnect(socket);	
 	});
+
+	socket.on('sendMsgToServer',function(data){
+        for(var i in SOCKET_LIST){
+            SOCKET_LIST[i].emit('addToChat',data.name + ': ' + data.value);
+        }
+    });
 	
 	socket.on('evalServer',function(data){
 		if(!DEBUG)
@@ -139,6 +170,10 @@ io.sockets.on('connection', function(socket){
 	
 });
 
+var initPack = {player:[]};
+var removePack = {player:[]};
+
+
 setInterval(function(){
 	var pack = {
 		player:Player.update(),
@@ -146,6 +181,11 @@ setInterval(function(){
 	
 	for(var i in SOCKET_LIST){
 		var socket = SOCKET_LIST[i];
-		socket.emit('newPositions',pack);
+		socket.emit('init',initPack);
+		socket.emit('update',pack);
+		socket.emit('remove',removePack);
 	}
+	initPack.player = [];
+	removePack.player = [];
+	
 },1000/25);

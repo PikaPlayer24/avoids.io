@@ -93,18 +93,74 @@
 	        if(chatInput.value[0] === '/')
 	            socket.emit('evalServer',chatInput.value.slice(1));
 	        else
-	            socket.emit('sendMsgToServer',chatInput.value);
+	            socket.emit('sendMsgToServer',{
+	            	value:chatInput.value,
+	            	name:promptDivname.value,
+	            });
 	        chatInput.value = '';      
 	    }
 
 	    //game
-	    socket.on('newPositions',function(data){
-	        ctx.clearRect(0,0,800,500);
-	        for(var i = 0 ; i < data.player.length; i++)
-	        	//ctx.fillStyle = data.player[i].color;
-	        	ctx.fillRect(data.player[i].x,data.player[i].y,25,25);	
-	    });
-	 
+	    var Player = function(initPack){
+			var self = {};
+			self.id = initPack.id;
+			self.username = initPack.name;
+			self.color = initPack.color;
+			self.x = initPack.x;
+			self.y = initPack.y;
+			
+			self.draw = function(){	
+				var x = self.x - Player.list[selfId].x + WIDTH/2;
+				var y = self.y - Player.list[selfId].y + HEIGHT/2;
+
+				ctx.fillStyle = self.color;
+				ctx.fillRect(self.x,self.y,25,25);
+			},
+			
+			Player.list[self.id] = self;
+			
+			
+			return self;
+		}
+		Player.list = {};
+
+		var selfId = null;
+	 	
+		socket.on('init',function(data){	
+			if(data.selfId)
+				selfId = data.selfId;
+			for(var i = 0 ; i < data.player.length; i++){
+				new Player(data.player[i]);
+			}
+		});
+
+		socket.on('update',function(data){
+			for(var i = 0 ; i < data.player.length; i++){
+				var pack = data.player[i];
+				var p = Player.list[pack.id];
+				if(p){
+					if(pack.x !== undefined)
+						p.x = pack.x;
+					if(pack.y !== undefined)
+						p.y = pack.y;
+				}
+			}
+		});
+
+		socket.on('remove',function(data){
+			for(var i = 0 ; i < data.player.length; i++){
+				delete Player.list[data.player[i]];
+			}
+		});
+		
+		setInterval(function(){
+			if(!selfId)
+				return;
+			ctx.clearRect(0,0,WIDTH,HEIGHT);
+			for(var i in Player.list)
+				Player.list[i].draw();
+		},40);
+
 	    document.onkeydown = function(event){
 	        if(event.keyCode === 68)    //d
 	            socket.emit('keyPress',{inputId:'right',state:true});
