@@ -16,8 +16,8 @@ var SOCKET_LIST = {};
 
 var Entity = function(){
 	var self = {
-		x:400,
-		y:250,
+		x:100,
+		y:100,
 		spdX:0,
 		spdY:0,
 		id:"",
@@ -106,7 +106,7 @@ Player.onConnect = function(socket,name,color){
 			player.pressingUp = data.state;
 		else if(data.inputId === 'down')
 			player.pressingDown = data.state;
-	});
+	});	
 	
 	socket.emit('init',{
 		selfId:socket.id,
