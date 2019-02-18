@@ -14,13 +14,24 @@ console.log("Server started on port " + port + ".");
 
 var SOCKET_LIST = {};
 
-var Entity = function(){
+var Entity = function(param){
 	var self = {
 		x:100,
 		y:100,
 		spdX:0,
 		spdY:0,
 		id:"",
+		map:'maplvl1',
+	}
+	if(param){
+		if(param.x)
+			self.x = param.x;
+		if(param.y)
+			self.y = param.y;
+		if(param.map)
+			self.map = param.map;
+		if(param.id)
+			self.id = param.id;
 	}
 	self.update = function(){
 		self.updatePosition();
@@ -36,8 +47,7 @@ var Entity = function(){
 }
 
 var Player = function(param){
-	var self = Entity();
-	self.id = param.id;
+	var self = Entity(param);
 	self.username = param.name;
 	self.color = param.color;
 	self.pressingRight = false;
@@ -53,6 +63,9 @@ var Player = function(param){
 	}
 	
 	self.updateSpd = function(){
+		var oldX = self.x;
+		var oldY = self.y;
+		
 		if(self.pressingRight)
 			self.spdX = self.maxSpd;
 		else if(self.pressingLeft)
@@ -65,16 +78,23 @@ var Player = function(param){
 		else if(self.pressingDown)
 			self.spdY = self.maxSpd;
 		else
-			self.spdY = 0;		
+			self.spdY = 0;
+
+		if(socket !== undefined)
+			socket.on('invalidPosition', function(){
+				self.x = oldX;
+				self.y = oldY
+			});
 	}
 	
 	self.getInitPack = function(){
 		return {
 			id:self.id,
-			x:self.x,
-			y:self.y,	
 			color:self.color,
 			name:self.username,
+			x:self.x,
+			y:self.y,	
+			map:self.map,
 		};		
 	}
 	self.getUpdatePack = function(){
@@ -82,6 +102,7 @@ var Player = function(param){
 			id:self.id,
 			x:self.x,
 			y:self.y,
+			map:self.map,
 		}	
 	}
 	
@@ -92,10 +113,12 @@ var Player = function(param){
 }
 Player.list = {};
 Player.onConnect = function(socket,name,color){
+	var map = 'maplvl1';
 	var player = Player({
 		username:name,
 		id:socket.id,
 		color:color,
+		map:map,
 	});
 	socket.on('keyPress',function(data){
 		if(data.inputId === 'left')
@@ -108,6 +131,13 @@ Player.onConnect = function(socket,name,color){
 			player.pressingDown = data.state;
 	});	
 	
+socket.on('changeMap',function(data){
+	if(player.map === 'maplvl1')
+		player.map = 'maplvl2';
+	/*else
+	*/
+})
+
 	socket.emit('init',{
 		selfId:socket.id,
 		player:Player.getAllInitPack(),
