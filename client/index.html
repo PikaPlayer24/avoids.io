@@ -131,8 +131,7 @@
 
 				/*ctx.font = '16px Arial';
 				ctx.fillStyle = 'black';
-				ctx.fillText(,x,y+50)
-				ctx.font = '30px Arial';*/
+				ctx.fillText(self.username,x,y+50)*/
 			},
 			
 			Player.list[self.id] = self;
@@ -173,38 +172,21 @@
 		});
 
 		Maps = function(id, grid){
+			var player = Player.list[selfId];
 			var self = {
 				id:id,
 				width:grid[0].length * TILE_SIZE,
 				height:grid.length * TILE_SIZE,
 				grid:grid,
 			}
-			
-			self.isPositionWall = function(pt){
-				var gridX = Math.floor(pt.x / TILE_SIZE);
-				var gridY = Math.floor(pt.y / TILE_SIZE);
-				if(gridX < 0 || gridX >= self.grid[0].length)
-					return true;
-				if(gridY < 0 || gridY >= self.grid.length)
-					return true;
-				return self.grid[gridY][gridX];
-			}
 
 			self.draw = function(){
-				var player = Player.list[selfId];
 				var x = WIDTH/2 - player.x;
 				var y = HEIGHT/2 - player.y;
 				ctx.drawImage(Img.map[self.id],x,y,self.width,self.height);
 			}
 			return self;
 		}
-
-		/*drawMap = function(){
-			var player = Player.list[selfId];
-			var x = WIDTH/2 - player.x;
-			var y = HEIGHT/2 - player.y;
-			ctx.drawImage(Img.map[player.map],x,y);
-		}*/
 
 		var changeMap = function(){
 			socket.emit('changeMap');
@@ -226,19 +208,11 @@
 		}
 
 		setInterval(function(){
-			if(Maps !== undefined)
-				var player = Player.list[selfId];
-				var position = Maps.current.isPositionWall(player);
-				if(position)
-					socket.emit('positionInvalid');
-		},40);
-
-		setInterval(function(){
 			if(!selfId)
 				return;
 			var player = Player.list[selfId];
-			var mapGrid = mapArray()
 			ctx.clearRect(0,0,WIDTH,HEIGHT);
+			var mapGrid = mapArray();
 			Maps.current = Maps(player.map, mapGrid); 
 			Maps.current.draw();
 			for(var i in Player.list)
